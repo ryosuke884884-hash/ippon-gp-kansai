@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPPON GP — 関西版</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Zen+Kaku+Gothic+New:wght@700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #f0eaf8;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  width: 100vw; height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 860px;
+}
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: #1a0033; letter-spacing: 2px; }
+.logo span { color: #cc00ff; }
+.tagline { font-size: 10px; color: #aaa; letter-spacing: 3px; font-weight: 700; }
+.kansai-badge {
+  background: linear-gradient(135deg, #cc00ff, #7700cc);
+  color: #fff;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  padding: 4px 16px;
+  border-radius: 6px;
+}
+
+/* ハンバーガー */
+.hamburger-wrap { margin-left: auto; position: relative; }
+.hamburger-btn {
+  background: none; border: none; cursor: pointer;
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 8px; border-radius: 8px; transition: background 0.15s;
+}
+.hamburger-btn:hover { background: rgba(204,0,255,0.1); }
+.hamburger-btn span {
+  display: block; width: 22px; height: 2px;
+  background: #555; border-radius: 2px;
+  transition: all 0.2s;
+}
+.hamburger-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger-btn.open span:nth-child(2) { opacity: 0; }
+.hamburger-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.menu-dropdown {
+  display: none;
+  position: absolute; right: 0; top: calc(100% + 6px);
+  background: white; border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  overflow: hidden; min-width: 180px; z-index: 200;
+}
+.menu-dropdown.open { display: block; }
+.menu-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 18px;
+  font-size: 13px; font-weight: 700; color: #1a0033;
+  text-decoration: none; cursor: pointer;
+  transition: background 0.1s;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.menu-item:hover { background: #f5f0ff; }
+.menu-item + .menu-item { border-top: 1px solid #f0e8ff; }
+.menu-item .icon { font-size: 16px; }
+.menu-item.current { color: #cc00ff; }
+
+.grid { display: flex; gap: 16px; }
+
+.card {
+  width: 200px; height: 200px;
+  border-radius: 24px; padding: 20px;
+  display: flex; flex-direction: column;
+  cursor: pointer; transition: transform 0.15s;
+  position: relative; overflow: hidden;
+}
+.card:hover { transform: scale(1.04); }
+.card.main   { background: linear-gradient(150deg, #cc00ff, #7700cc); color: white; }
+.card.host   { background: linear-gradient(150deg, #ff9500, #cc5500); color: white; }
+.card.judge  { background: linear-gradient(150deg, #f8f0ff, #ddb8ff); color: #1a0033; }
+.card.camera { background: linear-gradient(150deg, #00ddaa, #0099cc); color: white; }
+
+.card-tag { font-size: 9px; font-weight: 900; letter-spacing: 3px; opacity: 0.6; }
+.card-name { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 2px; line-height: 1; margin-top: 2px; }
+.card-desc { font-size: 10px; opacity: 0.7; font-weight: 700; margin-top: 4px; line-height: 1.4; }
+.spacer { flex: 1; }
+.open-btn { font-size: 11px; font-weight: 900; letter-spacing: 1px; padding: 3px 12px; border-radius: 50px; display: inline-block; width: fit-content; }
+.card.main   .open-btn { background: rgba(255,255,255,0.22); color: white; }
+.card.host   .open-btn { background: rgba(255,255,255,0.22); color: white; }
+.card.judge  .open-btn { background: #cc00ff; color: white; }
+.card.camera .open-btn { background: rgba(255,255,255,0.22); color: white; }
+
+.movie-btns { display: flex; gap: 12px; width: 860px; }
+.movie-btn {
+  flex: 1; text-align: center; padding: 10px;
+  background: #1a0033; border: 1px solid #cc00ff;
+  border-radius: 12px; color: #cc00ff;
+  font-size: 12px; font-weight: 900;
+  text-decoration: none; letter-spacing: 1px;
+}
+.movie-btn:hover { background: #2a0044; }
+
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
+.modal-bg.show { display: flex; }
+.modal { background: white; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.modal h2 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; color: #1a0033; }
+.modal-close { font-size: 12px; color: #888; cursor: pointer; text-decoration: underline; }
+.modal-open { background: #cc00ff; color: white; padding: 8px 24px; border-radius: 50px; font-size: 13px; font-weight: 900; text-decoration: none; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SONG <span>OGIRI</span> GRAND PRIX</div>
+  <div class="kansai-badge">関西版</div>
+  <div class="tagline">ADMIN PANEL</div>
+  <div class="hamburger-wrap">
+    <button class="hamburger-btn" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="menu-dropdown" id="menu-dropdown">
+      <a class="menu-item current" href="#">
+        <span class="icon">🌸</span> 関西版（現在）
+      </a>
+      <a class="menu-item" href="https://ryosuke884884-hash.github.io/ippon-gp/" target="_blank">
+        <span class="icon">🗾</span> 関東版へ
+      </a>
+      <a class="menu-item" href="https://github.com/ryosuke884884-hash/ippon-gp-kansai/upload/main" target="_blank">
+        <span class="icon">⚙</span> GitHubへ
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="grid">
+  <div class="card main" onclick="window.open('https://ryosuke884884-hash.github.io/ippon-gp-kansai/ippon_main.html','_blank')">
+    <div class="card-tag">DISPLAY</div>
+    <div class="card-name">MAIN</div>
+    <div class="card-desc">大画面・プロジェクター用</div>
+    <div class="spacer"></div>
+    <div class="open-btn">OPEN →</div>
+  </div>
+  <div class="card host" onclick="document.getElementById('modal-host').classList.add('show')">
+    <div class="card-tag">CONTROL</div>
+    <div class="card-name">HOST</div>
+    <div class="card-desc">司会・進行操作 PCで開く</div>
+    <div class="spacer"></div>
+    <div class="open-btn">QR / OPEN →</div>
+  </div>
+  <div class="card judge" onclick="document.getElementById('modal-judge').classList.add('show')">
+    <div class="card-tag">VOTING</div>
+    <div class="card-name">JUDGE</div>
+    <div class="card-desc">審査員10名 スマホで読み取り</div>
+    <div class="spacer"></div>
+    <div class="open-btn">QR / OPEN →</div>
+  </div>
+  <div class="card camera" onclick="document.getElementById('modal-camera').classList.add('show')">
+    <div class="card-tag">CAMERA</div>
+    <div class="card-name">CAM</div>
+    <div class="card-desc">スマホカメラをMAINに配信</div>
+    <div class="spacer"></div>
+    <div class="open-btn">QR / OPEN →</div>
+  </div>
+</div>
+
+<div class="movie-btns">
+  <a class="movie-btn" href="#" target="_blank">▶ OP COMMENT</a>
+  <a class="movie-btn" href="#" target="_blank">▶ OP MOVIE</a>
+</div>
+
+<div class="modal-bg" id="modal-host" onclick="this.classList.remove('show')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2>HOST</h2>
+    <div id="qr-host"></div>
+    <a class="modal-open" href="https://ryosuke884884-hash.github.io/ippon-gp-kansai/ippon_host.html" target="_blank">OPEN →</a>
+    <div class="modal-close" onclick="document.getElementById('modal-host').classList.remove('show')">閉じる</div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-judge" onclick="this.classList.remove('show')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2>JUDGE</h2>
+    <div id="qr-judge"></div>
+    <a class="modal-open" href="https://ryosuke884884-hash.github.io/ippon-gp-kansai/ippon_judge.html" target="_blank">OPEN →</a>
+    <div class="modal-close" onclick="document.getElementById('modal-judge').classList.remove('show')">閉じる</div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-camera" onclick="this.classList.remove('show')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2>CAMERA</h2>
+    <div id="qr-camera"></div>
+    <a class="modal-open" href="https://ryosuke884884-hash.github.io/ippon-gp-kansai/ippon_camera.html" target="_blank">OPEN →</a>
+    <div class="modal-close" onclick="document.getElementById('modal-camera').classList.remove('show')">閉じる</div>
+  </div>
+</div>
+
+<script>
+function toggleMenu() {
+  document.getElementById('hamburger').classList.toggle('open');
+  document.getElementById('menu-dropdown').classList.toggle('open');
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.hamburger-wrap')) {
+    document.getElementById('hamburger').classList.remove('open');
+    document.getElementById('menu-dropdown').classList.remove('open');
+  }
+});
+
+new QRCode(document.getElementById('qr-host'), {
+  text: 'https://ryosuke884884-hash.github.io/ippon-gp-kansai/ippon_host.html',
+  width: 200, height: 200, colorDark: '#1a0033', colorLight: '#ffffff',
+  correctLevel: QRCode.CorrectLevel.M
+});
+new QRCode(document.getElementById('qr-judge'), {
+  text: 'https://ryosuke884884-hash.github.io/ippon-gp-kansai/ippon_judge.html',
+  width: 200, height: 200, colorDark: '#1a0033', colorLight: '#ffffff',
+  correctLevel: QRCode.CorrectLevel.M
+});
+new QRCode(document.getElementById('qr-camera'), {
+  text: 'https://ryosuke884884-hash.github.io/ippon-gp-kansai/ippon_camera.html',
+  width: 200, height: 200, colorDark: '#003322', colorLight: '#ffffff',
+  correctLevel: QRCode.CorrectLevel.M
+});
+</script>
+</body>
+</html>
