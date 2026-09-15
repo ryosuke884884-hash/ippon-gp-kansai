@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>IPPON - 司会（関西）</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
+html, body { overflow: hidden; height: 100%; }
+body { background: #111; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 8px; min-height: 100vh; }
+h1 { color: #f5c400; font-size: 14px; letter-spacing: 2px; margin-bottom: 6px; }
+#vote-count { font-size: 72px; font-weight: 900; color: #f5c400; line-height: 1; }
+#vote-label { font-size: 14px; color: #aaa; margin-bottom: 10px; }
+#grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto auto auto;
+  gap: 8px 12px;
+  width: 94vw;
+}
+.btn { padding: 14px 0; border: none; border-radius: 8px; font-size: 14px; font-weight: 900; cursor: pointer; width: 100%; color: #fff; background: #333; }
+.btn:active { opacity: 0.7; }
+.mode-btn { background: #2a2a2a; color: #888; border-radius: 8px 8px 0 0; }
+.mode-btn.active { background: #00aaff; color: #000; }
+.odai-btn { background: #1a3a1a; color: #4cff4c; font-size: 13px; }
+.odai-read-btn { background: #1a2a3a; color: #4ca8ff; font-size: 13px; }
+.reveal-btn { background: #c8a000; color: #000; }
+.reset-btn { background: #2a1a1a; color: #ff6666; border: 1px solid #ff4444; }
+.laugh-btn { background: #2a1a2a; color: #ff88ff; border: 1px solid #aa44aa; }
+.score-btn { background: #004400; color: #44ff44; border-radius: 8px 0 0 8px; padding: 14px 0; }
+.score-btn-minus { background: #440000; color: #ff4444; border-radius: 0 8px 8px 0; padding: 14px 0; }
+.score-label { color: #aaa; font-size: 10px; text-align: center; }
+.score-num { color: #fff; font-size: 18px; font-weight: 900; text-align: center; }
+.shutsudai-btn { background: #1a1a3a; color: #88aaff; border: 1px solid #4466cc; }
+.thinking-btn { background: #1a1a3a; color: #88aaff; border: 1px solid #4466cc; }
+.btn.playing { background: #aa6600 !important; color: #fff !important; }
+</style>
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+<body>
+
+<h1>IPPON - 司会（関西）</h1>
+<div id="vote-count">0</div>
+<div id="vote-label">票 / 6</div>
+
+<div id="grid">
+  <!-- 行1：モードボタン -->
+  <button id="mode-btn-taiki" class="btn mode-btn" onclick="showTaiki()">待機モード</button>
+  <button id="mode-btn-saiten" class="btn mode-btn" onclick="hideOdai()">採点モード</button>
+  <button id="mode-btn-scoreboard" class="btn mode-btn" onclick="showScoreboard()">結果モード</button>
+
+  <!-- 行2：問/公開/スコア表示 -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;">
+    <button class="btn odai-btn" onclick="showOdai(1)">問1</button>
+    <button class="btn odai-btn" onclick="showOdai(2)">問2</button>
+    <button class="btn odai-btn" onclick="showOdai(3)">問3</button>
+    <button class="btn odai-btn" onclick="showOdai(4)">問4</button>
+    <button class="btn odai-btn" onclick="showOdai(5)">問5</button>
+  </div>
+  <button class="btn reveal-btn" onclick="reveal()">点数を公開</button>
+  <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:2px;">
+    <div style="grid-column:span 2;text-align:center;"><div class="score-label">FUJIMOTO</div><div id="sc-0" class="score-num">0</div></div>
+    <div style="grid-column:span 2;text-align:center;"><div class="score-label">ASANO</div><div id="sc-1" class="score-num">0</div></div>
+    <div style="grid-column:span 2;text-align:center;"><div class="score-label">KUBO</div><div id="sc-2" class="score-num">0</div></div>
+    <div style="grid-column:span 2;text-align:center;"><div class="score-label">BANSHO</div><div id="sc-3" class="score-num">0</div></div>
+    <div style="grid-column:span 2;text-align:center;"><div class="score-label">NAKAO</div><div id="sc-4" class="score-num">0</div></div>
+  </div>
+
+  <!-- 行3：読み上げ/リセット/＋－ -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;">
+    <button class="btn odai-read-btn" id="odai-read-btn-1" onclick="playOdai(1)">▶1</button>
+    <button class="btn odai-read-btn" id="odai-read-btn-2" onclick="playOdai(2)">▶2</button>
+    <button class="btn odai-read-btn" id="odai-read-btn-3" onclick="playOdai(3)">▶3</button>
+    <button class="btn odai-read-btn" id="odai-read-btn-4" onclick="playOdai(4)">▶4</button>
+    <button class="btn odai-read-btn" id="odai-read-btn-5" onclick="playOdai(5)">▶5</button>
+  </div>
+  <button class="btn reset-btn" onclick="resetVotes()">投票をリセット</button>
+  <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:2px;">
+    <button class="btn score-btn" onclick="addScore(0,1)">＋</button>
+    <button class="btn score-btn-minus" onclick="addScore(0,-1)">－</button>
+    <button class="btn score-btn" onclick="addScore(1,1)">＋</button>
+    <button class="btn score-btn-minus" onclick="addScore(1,-1)">－</button>
+    <button class="btn score-btn" onclick="addScore(2,1)">＋</button>
+    <button class="btn score-btn-minus" onclick="addScore(2,-1)">－</button>
+    <button class="btn score-btn" onclick="addScore(3,1)">＋</button>
+    <button class="btn score-btn-minus" onclick="addScore(3,-1)">－</button>
+    <button class="btn score-btn" onclick="addScore(4,1)">＋</button>
+    <button class="btn score-btn-minus" onclick="addScore(4,-1)">－</button>
+  </div>
+
+  <!-- 行4：音声/笑い/スコアリセット -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
+    <button class="btn shutsudai-btn" id="shutsudai-btn" onclick="playShutsudai()">🔔 出題音</button>
+    <button class="btn thinking-btn" id="thinking-btn" onclick="playThinking()">🎵 シンキング</button>
+    <button class="btn" id="se-buzzer-btn-main" style="background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:13px;" onclick="window.toggleAudio(window.agendaAudios['se_buzzer'], 'se-buzzer-btn-main')">🔔 終了ブザー</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;">
+    <button class="btn laugh-btn" id="laugh-btn-1" onclick="triggerSE('laugh_1')">笑い1</button>
+    <button class="btn laugh-btn" id="laugh-btn-2" onclick="triggerSE('laugh_2')">笑い2</button>
+    <button class="btn laugh-btn" id="laugh-btn-3" onclick="triggerSE('laugh_3')">笑い3</button>
+    <button class="btn laugh-btn" id="laugh-btn-4" onclick="triggerSE('laugh_4')">笑い4</button>
+    <button class="btn laugh-btn" id="se-cheer-btn" onclick="triggerSE('se_cheer')">歓声</button>
+    <button class="btn laugh-btn" id="se-clap-btn" onclick="triggerSE('se_clap')">拍手</button>
+  </div>
+  <button class="btn" style="background:#1a0a2a;color:#888;border:1px solid #444;" onclick="resetScores()">スコアリセット</button>
+</div>
+
+<div id="master-bar" style="width:94vw;margin:8px auto 4px;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:6px 10px;display:flex;align-items:center;gap:10px;">
+  <span style="font-size:11px;color:#aaa;">🎵 音マスター:</span>
+  <span id="master-label" style="font-size:11px;color:#888;">なし</span>
+  <button id="master-btn" onclick="window.becomeMaster()" style="background:#1a2a1a;border:1px solid #44aa44;color:#88ff88;font-size:11px;padding:3px 12px;border-radius:6px;cursor:pointer;margin-left:auto;">マスターになる</button>
+</div>
+
+<div id="agenda-wrap" style="width:94vw;margin:10px auto 0;background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;">
+  <div style="font-size:9px;color:#f5c400;font-weight:900;letter-spacing:3px;margin-bottom:2px;">AGENDA</div>
+  <div style="display:flex;gap:5px;flex-wrap:nowrap;">
+    <button class="btn" id="agenda-btn-op_comment" style="flex:1.2;background:#2a1a0a;border:1px solid #aa6600;color:#ffaa00;font-size:10px;" onclick="toggleAgendaVideo('op_comment')">▶OP COMMENT</button>
+    <button class="btn" id="agenda-btn-op_movie" style="flex:1.2;background:#2a1a0a;border:1px solid #aa6600;color:#ffaa00;font-size:10px;" onclick="toggleAgendaVideo('op_movie')">▶OP MOVIE</button>
+    <button class="btn" style="flex:1;background:#2a1a0a;border:1px solid #aa6600;color:#ffaa00;font-size:10px;" onclick="showAgenda('rule')">ルール説明</button>
+    <button class="btn" style="flex:1;background:#2a1a0a;border:1px solid #aa6600;color:#ffaa00;font-size:10px;" onclick="showAgenda('qr')">会場QR</button>
+    <button class="btn" style="flex:1;background:#2a1a0a;border:1px solid #aa6600;color:#ffaa00;font-size:10px;" onclick="showAgenda('chairman')">一般回答</button>
+    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:9px;" onclick="showAgenda('intro_player1')">player1</button>
+    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:9px;" onclick="showAgenda('intro_player2')">player2</button>
+    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:9px;" onclick="showAgenda('intro_player3')">player3</button>
+    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:9px;" onclick="showAgenda('intro_player4')">player4</button>
+    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:9px;" onclick="showAgenda('intro_player5')">player5</button>
+    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:9px;" onclick="showAgenda('intro_judge1')">judge1</button>
+    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:9px;" onclick="showAgenda('intro_judge2')">judge2</button>
+    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:9px;" onclick="showAgenda('intro_judge3')">judge3</button>
+    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:9px;" onclick="showAgenda('intro_judge4')">judge4</button>
+    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:9px;" onclick="showAgenda('intro_judge5')">judge5</button>
+    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:10px;" onclick="showAgenda('winner_1')">P1</button>
+    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:10px;" onclick="showAgenda('winner_2')">P2</button>
+    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:10px;" onclick="showAgenda('winner_3')">P3</button>
+    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:10px;" onclick="showAgenda('winner_4')">P4</button>
+    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:10px;" onclick="showAgenda('winner_5')">P5</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js';
+import { getDatabase, ref, set, remove, onValue } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC-mISssQxyO67vl3JxbbBktqXoDvmGLdk",
+  authDomain: "song-fes-ippon-gp.firebaseapp.com",
+  databaseURL: "https://song-fes-ippon-gp-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "song-fes-ippon-gp",
+  storageBucket: "song-fes-ippon-gp.firebasestorage.app",
+  messagingSenderId: "727959135173",
+  appId: "1:727959135173:web:5d983f22d1164a11a6e1ac"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let masterVolume = 1.0;
+let currentScores = [0,0,0,0,0];
+
+const BASE = 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3%2F';
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let audioUnlocked = false;
+
+const sounds = {
+  "1": new Audio(BASE + '1.mp3?alt=media'),
+  "2": new Audio(BASE + '2.mp3?alt=media'),
+  "3": new Audio(BASE + '3.mp3?alt=media'),
+  "4": new Audio(BASE + '4.mp3?alt=media'),
+  "5": new Audio(BASE + '5.mp3?alt=media'),
+};
+const voteSoundUrls = {
+  "1": BASE + '1.mp3?alt=media', "2": BASE + '2.mp3?alt=media',
+  "3": BASE + '3.mp3?alt=media', "4": BASE + '4.mp3?alt=media',
+  "5": BASE + '5.mp3?alt=media', "6": BASE + '6.mp3?alt=media',
+};
+const voteBuffers = {};
+async function loadVoteBuffer(key, url) {
+  try {
+    const res = await fetch(url);
+    const arr = await res.arrayBuffer();
+    voteBuffers[key] = await audioCtx.decodeAudioData(arr);
+  } catch(e) {}
+}
+Object.entries(voteSoundUrls).forEach(([k, url]) => loadVoteBuffer(k, url));
+
+function playVoteBuffer(key) {
+  const buf = voteBuffers[key];
+  if (!buf || !audioCtx) return false;
+  try {
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    const gain = audioCtx.createGain();
+    gain.gain.value = masterVolume;
+    src.connect(gain);
+    gain.connect(audioCtx.destination);
+    src.start(0);
+    return src;
+  } catch(e) { return false; }
+}
+
+const sound10    = new Audio(BASE + '6.mp3?alt=media');
+const soundIppon = new Audio(BASE + 'IPPON.mp3?alt=media');
+const shutsudaiAudio = new Audio(BASE + encodeURIComponent('出題音.mp3') + '?alt=media');
+const thinkingAudio  = new Audio(BASE + encodeURIComponent('ルイジアナ.mp3') + '?alt=media');
+thinkingAudio.loop = true;
+
+// 関西版お題音声
+const odaiAudios = {
+  1: new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3_question%2Fmp3_q1_kansai.mp3?alt=media'),
+  2: new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3_question%2Fmp3_q2_kansai.mp3?alt=media'),
+  3: new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3_question%2Fmp3_q3_kansai.mp3?alt=media'),
+  4: new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3_question%2Fmp3_q4_kansai.mp3?alt=media'),
+  5: new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3_question%2Fmp3_q5_kansai.mp3?alt=media'),
+};
+
+const noIpponAudio = new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3%2Fno-ippon.mp3?alt=media');
+const laughAudios = {
+  1: new Audio(BASE + 'laugh1.mp3?alt=media'),
+  2: new Audio(BASE + 'laugh2.mp3?alt=media'),
+  3: new Audio(BASE + 'laugh3.mp3?alt=media'),
+  4: new Audio(BASE + 'laugh4.mp3?alt=media'),
+};
+const agendaAudios = {
+  se_cheer:  new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3%2Fmp3_%E6%AD%93%E5%A3%B0.mp3?alt=media&token=e2d04e49-58e2-474b-81df-0217e7e5c344'),
+  se_clap:   new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3%2Fmp3_%E6%8B%8D%E6%89%8B.mp3?alt=media&token=d351f6a4-8313-48aa-ae27-2f887ad26790'),
+  se_buzzer: new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3%2Fsyuryo.mp3?alt=media&token=83cb1ec0-1243-4a38-a360-61a05073647e'),
+};
+
+const allAudios = [...Object.values(sounds), sound10, soundIppon, shutsudaiAudio, thinkingAudio, noIpponAudio,
+  ...Object.values(odaiAudios), ...Object.values(laughAudios), ...Object.values(agendaAudios)];
+
+// 読み込みオーバーレイ
+const overlay = document.createElement('div');
+overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
+overlay.innerHTML = '<div style="color:#f5c400;font-size:22px;font-weight:900;">読み込み中...</div><div id="load-progress" style="color:#aaa;font-size:14px;">0 / ' + allAudios.length + '</div>';
+document.body.appendChild(overlay);
+let loadedCount = 0;
+const progressEl = document.getElementById('load-progress');
+allAudios.forEach(a => {
+  a.addEventListener('canplaythrough', () => {
+    loadedCount++;
+    progressEl.textContent = loadedCount + ' / ' + allAudios.length;
+    if (loadedCount >= allAudios.length) {
+      overlay.style.transition = 'opacity 0.5s';
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 500);
+    }
+  }, { once: true });
+  a.load();
+});
+setTimeout(() => {
+  if (overlay.parentNode) { overlay.style.opacity = '0'; setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 500); }
+}, 10000);
+
+window.unlockAudio = async () => {
+  if (audioUnlocked) return;
+  await audioCtx.resume();
+  const buf = audioCtx.createBuffer(1, 1, 22050);
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf; src.connect(audioCtx.destination); src.start(0);
+  for (const a of allAudios) {
+    a.volume = 0;
+    try { await a.play(); a.pause(); a.currentTime = 0; a.volume = masterVolume; } catch(e) {}
+  }
+  audioUnlocked = true;
+};
+document.addEventListener('click', () => window.unlockAudio(), { once: true });
+document.addEventListener('touchstart', () => window.unlockAudio(), { once: true });
+setInterval(() => audioCtx.resume(), 30000);
+
+window.setVolume = (v) => {
+  masterVolume = v / 100;
+  document.getElementById('vol-label').textContent = v + '%';
+  allAudios.forEach(a => { if (a) a.volume = masterVolume; });
+};
+
+// 投票音キュー
+let soundQueue = [], isPlaying = false, prevVoteCount = 0;
+function enqueueVoteSound(count) { soundQueue.push(count); if (!isPlaying) playNextInQueue(); }
+function playNextInQueue() {
+  if (soundQueue.length === 0) { isPlaying = false; return; }
+  isPlaying = true;
+  const c = soundQueue.shift();
+  if (c >= 6) {
+    const src = playVoteBuffer("6");
+    if (src) {
+      src.onended = () => { soundIppon.volume = masterVolume; soundIppon.currentTime = 0; soundIppon.play().catch(()=>{}); soundIppon.onended = () => setTimeout(playNextInQueue, 150); };
+    } else {
+      sound10.volume = masterVolume; sound10.currentTime = 0; sound10.play().catch(()=>{});
+      sound10.onended = () => { soundIppon.volume = masterVolume; soundIppon.currentTime = 0; soundIppon.play().catch(()=>{}); soundIppon.onended = () => setTimeout(playNextInQueue, 150); };
+    }
+    return;
+  }
+  const key = String(c);
+  const played = playVoteBuffer(key);
+  if (!played) { const audio = sounds[key]; if (audio) { audio.volume = masterVolume; audio.currentTime = 0; audio.play().catch(()=>{}); } }
+  setTimeout(playNextInQueue, 50);
+}
+
+// 投票監視
+let voteDebounce = null;
+onValue(ref(db, 'votes'), (snap) => {
+  clearTimeout(voteDebounce);
+  voteDebounce = setTimeout(() => {
+    const votes = snap.val() || {};
+    const count = Object.keys(votes).length;
+    document.getElementById('vote-count').textContent = count;
+    if (!audioUnlocked) { prevVoteCount = count; return; }
+    for (let i = prevVoteCount + 1; i <= count; i++) enqueueVoteSound(i);
+    prevVoteCount = count;
+  }, 0);
+});
+
+// スコア監視
+onValue(ref(db, 'scores'), (snap) => {
+  const scores = snap.val() || [0,0,0,0,0];
+  currentScores = scores;
+  for (let i = 0; i < 5; i++) {
+    document.getElementById('sc-' + i).textContent = scores[4 - i] || 0;
+    const subEl = document.getElementById('sub-score-' + (4 - i));
+    if (subEl) subEl.textContent = scores[4 - i] || 0;
+  }
+});
+
+// mode監視
+let previousMode = 'taiki';
+onValue(ref(db, 'mode'), (snap) => {
+  const mode = snap.val();
+  if (mode && mode !== 'agenda') previousMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  if (mode === 'taiki') document.getElementById('mode-btn-taiki').classList.add('active');
+  if (mode === 'saiten') document.getElementById('mode-btn-saiten').classList.add('active');
+  if (mode === 'scoreboard') document.getElementById('mode-btn-scoreboard').classList.add('active');
+});
+
+// ボタン関数
+window.showTaiki = () => { remove(ref(db,'agenda')); remove(ref(db,'votes')); remove(ref(db,'revealed')); set(ref(db,'taiki'),true); remove(ref(db,'odai')); set(ref(db,'mode'),'taiki'); prevVoteCount=0; };
+window.hideOdai  = () => { set(ref(db,'keep_audio'),true); remove(ref(db,'agenda')); remove(ref(db,'odai')); remove(ref(db,'taiki')); remove(ref(db,'votes')); remove(ref(db,'revealed')); set(ref(db,'mode'),'saiten'); prevVoteCount=0; setTimeout(()=>remove(ref(db,'keep_audio')),2000); };
+window.showScoreboard = () => { remove(ref(db,'agenda')); remove(ref(db,'odai')); remove(ref(db,'taiki')); remove(ref(db,'votes')); remove(ref(db,'revealed')); set(ref(db,'mode'),'scoreboard'); };
+window.showOdai = (n) => { remove(ref(db,'agenda')); remove(ref(db,'taiki')); set(ref(db,'odai'),n); remove(ref(db,'votes')); set(ref(db,'revealed'),false); set(ref(db,'mode'),'odai'); prevVoteCount=0; };
+window.reveal = () => { set(ref(db,'revealed'),true); noIpponAudio.volume=masterVolume; noIpponAudio.currentTime=0; noIpponAudio.play().catch(()=>{}); };
+window.resetVotes = () => { remove(ref(db,'votes')); set(ref(db,'revealed'),false); prevVoteCount=0; };
+window.addScore = (pi, delta) => {
+  const newScores = [...currentScores];
+  const idx = 4 - pi;
+  newScores[idx] = Math.max(0, (newScores[idx] || 0) + delta);
+  set(ref(db, 'scores'), newScores);
+};
+_realAddScore = window.addScore;
+window.resetScores = () => set(ref(db, 'scores'), [0,0,0,0,0]);
+_realResetScores = window.resetScores;
+
+window.toggleAudio = function(audio, btnId) {
+  const btn = document.getElementById(btnId);
+  const origText = btn.textContent.replace('■ ', '');
+  if (!audio.paused) { audio.pause(); audio.currentTime=0; btn.classList.remove('playing'); btn.textContent=origText; }
+  else { audio.volume=masterVolume; audio.play().then(()=>{ btn.classList.add('playing'); btn.textContent='■ '+origText; audio.onended=()=>{ btn.classList.remove('playing'); btn.textContent=origText; }; }).catch(()=>{}); }
+};
+
+window.playShutsudai = () => toggleAudio(shutsudaiAudio, 'shutsudai-btn');
+window.playThinking  = () => toggleAudio(thinkingAudio,  'thinking-btn');
+window.playOdai = (n) => toggleAudio(odaiAudios[n], 'odai-read-btn-' + n);
+
+// SE Firebase経由
+const myId = Math.random().toString(36).substr(2, 8);
+let isMaster = false, currentSEKey = null;
+const seAudioMap = { laugh_1: laughAudios[1], laugh_2: laughAudios[2], laugh_3: laughAudios[3], laugh_4: laughAudios[4], se_cheer: agendaAudios['se_cheer'], se_clap: agendaAudios['se_clap'] };
+const seBtnMap    = { laugh_1: 'laugh-btn-1', laugh_2: 'laugh-btn-2', laugh_3: 'laugh-btn-3', laugh_4: 'laugh-btn-4', se_cheer: 'se-cheer-btn', se_clap: 'se-clap-btn' };
+const subSeBtnMap = { laugh_1: 'sub-laugh-btn-1', laugh_2: 'sub-laugh-btn-2', laugh_3: 'sub-laugh-btn-3', laugh_4: 'sub-laugh-btn-4', se_cheer: 'sub-se-cheer-btn', se_clap: 'sub-se-clap-btn' };
+
+window.becomeMaster = () => set(ref(db, 'se_master'), myId);
+_realBecomeMaster = window.becomeMaster;
+
+window.triggerSE = (key) => {
+  if (currentSEKey === key) set(ref(db,'se_trigger'),{key,action:'stop',ts:Date.now()});
+  else set(ref(db,'se_trigger'),{key,action:'play',ts:Date.now()});
+};
+_realTriggerSE = window.triggerSE;
+
+onValue(ref(db, 'se_master'), (snapshot) => {
+  const masterId = snapshot.val();
+  isMaster = masterId === myId;
+  const label = document.getElementById('master-label');
+  const btn = document.getElementById('master-btn');
+  const subLabel = document.getElementById('sub-master-label');
+  if (masterId) {
+    label.textContent = isMaster ? '自分 ✓' : '他の端末';
+    label.style.color = isMaster ? '#88ff88' : '#ff8888';
+    btn.textContent = isMaster ? 'マスター中' : 'マスターになる（上書き）';
+    btn.style.borderColor = isMaster ? '#44aa44' : '#aa4444';
+    if (subLabel) { subLabel.textContent = isMaster ? '自分 ✓' : '他の端末'; subLabel.style.color = isMaster ? '#88ff88' : '#ff8888'; }
+  } else {
+    label.textContent = 'なし'; label.style.color = '#888'; btn.textContent = 'マスターになる';
+    if (subLabel) { subLabel.textContent = 'なし'; subLabel.style.color = '#888'; }
+  }
+});
+
+onValue(ref(db, 'se_trigger'), (snapshot) => {
+  const data = snapshot.val();
+  Object.keys(seBtnMap).forEach(k => {
+    const btn = document.getElementById(seBtnMap[k]); if (btn) btn.classList.remove('playing');
+    const subBtn = document.getElementById(subSeBtnMap[k]); if (subBtn) subBtn.style.opacity = '1';
+  });
+  if (data && data.action === 'play') {
+    const btn = document.getElementById(seBtnMap[data.key]); if (btn) btn.classList.add('playing');
+    const subBtn = document.getElementById(subSeBtnMap[data.key]); if (subBtn) subBtn.style.opacity = '0.5';
+  }
+  if (!data || !isMaster) return;
+  const { key, action } = data;
+  const audio = seAudioMap[key];
+  if (!audio) return;
+  if (action === 'stop') { audio.pause(); audio.currentTime=0; currentSEKey=null; }
+  else {
+    if (currentSEKey && currentSEKey !== key) { const prev=seAudioMap[currentSEKey]; if (prev) { prev.pause(); prev.currentTime=0; } }
+    currentSEKey = key;
+    audio.volume = masterVolume;
+    audio.play().catch(()=>{});
+    audio.onended = () => { currentSEKey = null; };
+  }
+});
+
+// AGENDA URLs（関西版）
+const AGENDA_URLS = {
+  op_comment: '#', // 保留
+  op_movie:   '#', // 保留
+  rule:     'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fimage_rule_dummy.png?alt=media&token=bb1c9c96-3fd1-43a9-9faa-378277ac8e36',
+  qr:       'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fimage_qr_kansai.png?alt=media&token=7e11109d-147c-4896-b839-e2dc4f8a5ba6',
+  chairman: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fimage_chairman%27s%20eye.png?alt=media&token=6bf664d7-5b30-487e-a714-5d8e714802d0',
+  winner_1: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_tatsuya.nakao.png?alt=media',
+  winner_2: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_kohei.bansho.png?alt=media',
+  winner_3: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_chiaki.kubo.png?alt=media',
+  winner_4: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_taro.asano.png?alt=media',
+  winner_5: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_ryo.fujimoto.png?alt=media',
+  intro_player1: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_tatsuya.nakao.png?alt=media',
+  intro_player2: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_kohei.bansho.png?alt=media',
+  intro_player3: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_chiaki.kubo.png?alt=media',
+  intro_player4: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_taro.asano.png?alt=media',
+  intro_player5: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_ryo.fujimoto.png?alt=media',
+  intro_judge1: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fimage_introduce_judge1.png?alt=media',
+  intro_judge2: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_motoki.someya.png?alt=media',
+  intro_judge3: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_yuken.tezuka.png?alt=media',
+  intro_judge4: '#', // TOMIYAMA 後でアップ待ち
+  intro_judge5: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_kawachiya.so.png?alt=media',
+};
+
+window.agendaAudios = agendaAudios;
+
+let currentAgendaKey = null, manualStop = false;
+
+window.showAgenda = (key) => {
+  currentAgendaKey = key;
+  set(ref(db, 'mode'), 'agenda');
+  setTimeout(() => set(ref(db, 'agenda'), AGENDA_URLS[key]), 50);
+  ['op_comment','op_movie'].forEach(k => {
+    const btn = document.getElementById('agenda-btn-' + k);
+    if (btn) btn.textContent = '▶ ' + (k === 'op_comment' ? 'OP COMMENT' : 'OP MOVIE');
+  });
+};
+
+onValue(ref(db, 'agenda'), (snapshot) => {
+  if (!snapshot.val() && !manualStop) {
+    currentAgendaKey = null;
+    set(ref(db, 'mode'), previousMode);
+    ['op_comment','op_movie'].forEach(k => {
+      const btn = document.getElementById('agenda-btn-' + k);
+      if (btn) btn.textContent = '▶ ' + (k === 'op_comment' ? 'OP COMMENT' : 'OP MOVIE');
+    });
+  }
+  manualStop = false;
+});
+
+window.toggleAgendaVideo = (key) => {
+  const btn = document.getElementById('agenda-btn-' + key);
+  if (currentAgendaKey === key) {
+    manualStop = true; remove(ref(db,'agenda')); currentAgendaKey = null;
+    if (btn) btn.textContent = '▶ ' + (key === 'op_comment' ? 'OP COMMENT' : 'OP MOVIE');
+  } else {
+    ['op_comment','op_movie'].forEach(k => { const b=document.getElementById('agenda-btn-'+k); if(b) b.textContent='▶ '+(k==='op_comment'?'OP COMMENT':'OP MOVIE'); });
+    currentAgendaKey = key; manualStop = true;
+    remove(ref(db,'agenda')).then(() => { manualStop=false; set(ref(db,'mode'),'agenda'); setTimeout(()=>set(ref(db,'agenda'),AGENDA_URLS[key]),50); });
+    if (btn) btn.textContent = '■ ' + (key === 'op_comment' ? 'OP COMMENT' : 'OP MOVIE');
+  }
+};
+
+// PC自動マスター
+if (!/iPhone|iPad|Android|Mobile/i.test(navigator.userAgent) && window.innerWidth >= 768) {
+  set(ref(db, 'se_master'), myId);
+}
+</script>
+
+<div style="position:fixed;top:10px;right:10px;display:flex;gap:6px;z-index:9999;" id="pc-btns">
+  <button id="fullscreen-btn-host" onclick="window.goFullscreen()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:12px;font-weight:900;padding:8px 14px;border-radius:8px;cursor:pointer;">⛶ 全画面</button>
+</div>
+
+<div id="vol-wrap" style="position:fixed;top:10px;left:10px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.6);padding:4px 10px;border-radius:8px;z-index:999;">
+  <span style="font-size:14px;">🔈</span>
+  <input id="vol-slider" type="range" min="0" max="100" value="100" oninput="setVolume(this.value)" style="width:80px;accent-color:#f5c400;">
+  <span id="vol-label" style="font-size:11px;color:#aaa;min-width:32px;">100%</span>
+</div>
+
+<!-- SP画面 -->
+<div id="sub-select" style="display:none;position:fixed;inset:0;background:#0a0a0a;z-index:9000;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:12px;gap:8px;overflow:hidden;">
+  <div style="text-align:center;font-size:11px;color:#d4a017;font-weight:900;letter-spacing:3px;flex-shrink:0;">IPPON HOST — 関西</div>
+  <div style="flex:1;display:flex;flex-direction:column;gap:6px;overflow:hidden;">
+    <div style="flex:1;background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1;">
+        <span style="font-size:12px;color:#aaa;font-weight:900;min-width:90px;">NAKAO</span>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+          <button onclick="window.addScore(4,-1)" style="background:#3a1a1a;border:1px solid #aa4444;color:#ff8888;font-size:16px;width:32px;height:32px;border-radius:6px;cursor:pointer;">－</button>
+          <span id="sub-score-4" style="font-size:20px;font-weight:900;color:#f5c400;min-width:24px;text-align:center;">0</span>
+          <button onclick="window.addScore(4,1)" style="background:#1a3a1a;border:1px solid #44aa44;color:#88ff88;font-size:16px;width:32px;height:32px;border-radius:6px;cursor:pointer;">＋</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1;">
+        <span style="font-size:12px;color:#aaa;font-weight:900;min-width:90px;">BANSHO</span>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+          <button onclick="window.addScore(3,-1)" style="background:#3a1a1a;border:1px solid #aa4444;color:#ff8888;font-size:16px;width:32px;height:32px;border-radius:6px;cursor:pointer;">－</button>
+          <span id="sub-score-3" style="font-size:20px;font-weight:900;color:#f5c400;min-width:24px;text-align:center;">0</span>
+          <button onclick="window.addScore(3,1)" style="background:#1a3a1a;border:1px solid #44aa44;color:#88ff88;font-size:16px;width:32px;height:32px;border-radius:6px;cursor:pointer;">＋</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1;">
+        <span style="font-size:12px;color:#aaa;font-weight:900;min-width:90px;">KUBO</span>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+          <button onclick="window.addScore(2,-1)" style="background:#3a1a1a;border:1px solid #aa4444;color:#ff8888;font-size:16px;width:32px;height:32px;border-radius:6px;cursor:pointer;">－</button>
+          <span id="sub-score-2" style="font-size:20px;font-weight:900;color:#f5c400;min-width:24px;text-align:center;">0</span>
+          <button onclick="window.addScore(2,1)" style="background:#1a3a1a;border:1px solid #44aa44;color:#88ff88;font-size:16px;width:32px;height:32px;border-radius:6px;cursor:pointer;">＋</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1;">
+        <span style="font-size:12px;color:#aaa;font-weight:900;min-width:90px;">ASANO</span>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+          <button onclick="window.addScore(1,-1)" style="background:#3a1a1a;border:1px solid #aa4444;color:#ff8888;font-size:16px;width:32px;height:32px;border-radius:6px;cursor:pointer;">－</button>
+          <span id="sub-score-1" style="font-size:20px;font-weight:900;color:#f5c400;min-width:24px;text-align:center;">0</span>
+          <button onclick="window.addScore(1,1)" style="background:#1a3a1a;border:1px solid #44aa44;color:#88ff88;font-size:16px;width:32px;height:32px;border-radius:6px;cursor:pointer;">＋</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1;">
+        <span style="font-size:12px;color:#aaa;font-weight:900;min-width:90px;">FUJIMOTO</span>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+          <button onclick="window.addScore(0,-1)" style="background:#3a1a1a;border:1px solid #aa4444;color:#ff8888;font-size:16px;width:32px;height:32px;border-radius:6px;cursor:pointer;">－</button>
+          <span id="sub-score-0" style="font-size:20px;font-weight:900;color:#f5c400;min-width:24px;text-align:center;">0</span>
+          <button onclick="window.addScore(0,1)" style="background:#1a3a1a;border:1px solid #44aa44;color:#88ff88;font-size:16px;width:32px;height:32px;border-radius:6px;cursor:pointer;">＋</button>
+        </div>
+      </div>
+    </div>
+    <button onclick="window.resetScores()" style="flex-shrink:0;width:100%;background:#2a0a0a;border:1px solid #aa2222;color:#ff6666;font-size:13px;font-weight:900;padding:10px;border-radius:8px;cursor:pointer;">スコアリセット</button>
+    <div style="flex-shrink:0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+      <button id="sub-laugh-btn-1" onclick="window.triggerSE('laugh_1')" style="background:#2a0a2a;border:1px solid #aa44aa;color:#ff88ff;font-size:14px;font-weight:900;padding:12px 0;border-radius:8px;cursor:pointer;">笑い1</button>
+      <button id="sub-laugh-btn-2" onclick="window.triggerSE('laugh_2')" style="background:#2a0a2a;border:1px solid #aa44aa;color:#ff88ff;font-size:14px;font-weight:900;padding:12px 0;border-radius:8px;cursor:pointer;">笑い2</button>
+      <button id="sub-laugh-btn-3" onclick="window.triggerSE('laugh_3')" style="background:#2a0a2a;border:1px solid #aa44aa;color:#ff88ff;font-size:14px;font-weight:900;padding:12px 0;border-radius:8px;cursor:pointer;">笑い3</button>
+      <button id="sub-laugh-btn-4" onclick="window.triggerSE('laugh_4')" style="background:#2a0a2a;border:1px solid #aa44aa;color:#ff88ff;font-size:14px;font-weight:900;padding:12px 0;border-radius:8px;cursor:pointer;">笑い4</button>
+      <button id="sub-se-cheer-btn" onclick="window.triggerSE('se_cheer')" style="background:#1a1a3a;border:1px solid #4444aa;color:#8888ff;font-size:14px;font-weight:900;padding:12px 0;border-radius:8px;cursor:pointer;">歓声</button>
+      <button id="sub-se-clap-btn" onclick="window.triggerSE('se_clap')" style="background:#1a1a3a;border:1px solid #4444aa;color:#8888ff;font-size:14px;font-weight:900;padding:12px 0;border-radius:8px;cursor:pointer;">拍手</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:6px 10px;">
+      <span style="font-size:11px;color:#aaa;">🎵 音マスター:</span>
+      <span id="sub-master-label" style="font-size:11px;color:#888;">なし</span>
+      <button onclick="window.becomeMaster()" style="background:#1a2a1a;border:1px solid #44aa44;color:#88ff88;font-size:11px;padding:3px 12px;border-radius:6px;cursor:pointer;margin-left:auto;">マスターになる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var _realAddScore, _realResetScores, _realTriggerSE, _realBecomeMaster;
+window.addScore    = function(pi, delta) { if (_realAddScore) _realAddScore(pi, delta); };
+window.resetScores = function() { if (_realResetScores) _realResetScores(); };
+window.triggerSE   = function(key) { if (_realTriggerSE) _realTriggerSE(key); };
+window.becomeMaster = function() { if (_realBecomeMaster) _realBecomeMaster(); };
+window.goFullscreen = () => {
+  document.documentElement.requestFullscreen();
+  document.getElementById('fullscreen-btn-host').style.display = 'none';
+};
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) document.getElementById('fullscreen-btn-host').style.display = '';
+});
+const isSP = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
+if (isSP) {
+  document.getElementById('pc-btns').style.display = 'none';
+  document.getElementById('vol-wrap').style.display = 'none';
+  document.getElementById('sub-select').style.display = 'flex';
+}
+</script>
+</body>
+</html>
