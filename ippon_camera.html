@@ -203,7 +203,16 @@ window.startCamera = async function() {
   try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
 
   roomId = genId();
-  peer = new Peer('ippon-host-' + roomId);
+  peer = new Peer('ippon-host-' + roomId, {
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:global.stun.twilio.com:3478' }
+      ]
+    }
+  });
 
   peer.on('open', () => {
     set(ref(db, 'camera_room'), roomId);
