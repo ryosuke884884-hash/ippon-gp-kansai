@@ -221,9 +221,9 @@ const laughAudios = {
   4: new Audio(BASE + 'laugh4.mp3?alt=media'),
 };
 const agendaAudios = {
-  se_cheer:  new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3%2Fmp3_%E6%AD%93%E5%A3%B0.mp3?alt=media&token=e2d04e49-58e2-474b-81df-0217e7e5c344'),
-  se_clap:   new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3%2Fmp3_%E6%8B%8D%E6%89%8B.mp3?alt=media&token=d351f6a4-8313-48aa-ae27-2f887ad26790'),
-  se_buzzer: new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3%2Fsyuryo.mp3?alt=media&token=83cb1ec0-1243-4a38-a360-61a05073647e'),
+  se_cheer:  new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3%2Fmp3_%E6%AD%93%E5%A3%B0.mp3?alt=media'),
+  se_clap:   new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3%2Fmp3_%E6%8B%8D%E6%89%8B.mp3?alt=media'),
+  se_buzzer: new Audio('https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/mp3%2Fsyuryo.mp3?alt=media'),
 };
 
 const allAudios = [...Object.values(sounds), sound10, soundIppon, shutsudaiAudio, thinkingAudio, noIpponAudio,
@@ -421,11 +421,11 @@ onValue(ref(db, 'se_trigger'), (snapshot) => {
 
 // AGENDA URLs（関西版）
 const AGENDA_URLS = {
-  op_comment: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/movie%2Fopcomment_v3.00.mp4?alt=media&token=2dc68617-2b14-4d26-b08f-ca91dc423c01',
+  op_comment: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/movie%2Fopcomment_v3.00.mp4?alt=media',
   op_movie:   '#', // 保留
-  rule:     'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fimage_rule_dummy.png?alt=media&token=bb1c9c96-3fd1-43a9-9faa-378277ac8e36',
-  qr:       'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fimage_qr_kansai.png?alt=media&token=7e11109d-147c-4896-b839-e2dc4f8a5ba6',
-  chairman: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fimage_chairman%27s%20eye.png?alt=media&token=6bf664d7-5b30-487e-a714-5d8e714802d0',
+  rule:     'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fimage_rule_dummy.png?alt=media',
+  qr:       'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fimage_qr_kansai.png?alt=media',
+  chairman: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fimage_chairman%27s%20eye.png?alt=media',
   winner_1: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_tatsuya.nakao.png?alt=media',
   winner_2: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_kohei.bansho.png?alt=media',
   winner_3: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_chiaki.kubo.png?alt=media',
