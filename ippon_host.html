@@ -53,9 +53,9 @@ h1 { color: #f5c400; font-size: 14px; letter-spacing: 2px; margin-bottom: 6px; }
   <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;">
     <button class="btn odai-btn" onclick="showOdai(1)">問1</button>
     <button class="btn odai-btn" onclick="showOdai(2)">問2</button>
-    <button class="btn odai-btn" onclick="showOdai(5)">問5</button>
-    <button class="btn odai-btn" onclick="showOdai(3)">問3</button>
-    <button class="btn odai-btn" onclick="showOdai(4)">問4</button>
+    <button class="btn odai-btn" onclick="showOdai(5)">問3</button>
+    <button class="btn odai-btn" onclick="showOdai(3)">問4</button>
+    <button class="btn odai-btn" onclick="showOdai(4)">問5</button>
   </div>
   <button class="btn reveal-btn" onclick="reveal()">点数を公開</button>
   <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:2px;">
@@ -70,9 +70,9 @@ h1 { color: #f5c400; font-size: 14px; letter-spacing: 2px; margin-bottom: 6px; }
   <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;">
     <button class="btn odai-read-btn" id="odai-read-btn-1" onclick="playOdai(1)">▶1</button>
     <button class="btn odai-read-btn" id="odai-read-btn-2" onclick="playOdai(2)">▶2</button>
-    <button class="btn odai-read-btn" id="odai-read-btn-5" onclick="playOdai(5)">▶5</button>
-    <button class="btn odai-read-btn" id="odai-read-btn-3" onclick="playOdai(3)">▶3</button>
-    <button class="btn odai-read-btn" id="odai-read-btn-4" onclick="playOdai(4)">▶4</button>
+    <button class="btn odai-read-btn" id="odai-read-btn-5" onclick="playOdai(5)">▶3</button>
+    <button class="btn odai-read-btn" id="odai-read-btn-3" onclick="playOdai(3)">▶4</button>
+    <button class="btn odai-read-btn" id="odai-read-btn-4" onclick="playOdai(4)">▶5</button>
   </div>
   <button class="btn reset-btn" onclick="resetVotes()">投票をリセット</button>
   <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:2px;">
@@ -443,7 +443,7 @@ const AGENDA_URLS = {
   intro_player3: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_chiaki.kubo.png?alt=media',
   intro_player4: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_taro.asano.png?alt=media',
   intro_player5: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_ryo.fujimoto.png?alt=media',
-  intro_judge1: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fimage_introduce_judge1.png?alt=media',
+  intro_judge1: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_hisaaki.kihara.png?alt=media',
   intro_judge2: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_tatsuya.nakao.png?alt=media',
   intro_judge3: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_motoki.someya.png?alt=media',
   intro_judge4: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_yuken.tezuka.png?alt=media',
