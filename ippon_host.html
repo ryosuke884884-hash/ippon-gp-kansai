@@ -53,26 +53,26 @@ h1 { color: #f5c400; font-size: 14px; letter-spacing: 2px; margin-bottom: 6px; }
   <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;">
     <button class="btn odai-btn" onclick="showOdai(1)">問1</button>
     <button class="btn odai-btn" onclick="showOdai(2)">問2</button>
+    <button class="btn odai-btn" onclick="showOdai(5)">問5</button>
     <button class="btn odai-btn" onclick="showOdai(3)">問3</button>
     <button class="btn odai-btn" onclick="showOdai(4)">問4</button>
-    <button class="btn odai-btn" onclick="showOdai(5)">問5</button>
   </div>
   <button class="btn reveal-btn" onclick="reveal()">点数を公開</button>
   <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:2px;">
     <div style="grid-column:span 2;text-align:center;"><div class="score-label">FUJIMOTO</div><div id="sc-0" class="score-num">0</div></div>
     <div style="grid-column:span 2;text-align:center;"><div class="score-label">ASANO</div><div id="sc-1" class="score-num">0</div></div>
     <div style="grid-column:span 2;text-align:center;"><div class="score-label">KUBO</div><div id="sc-2" class="score-num">0</div></div>
-    <div style="grid-column:span 2;text-align:center;"><div class="score-label">BANSHO</div><div id="sc-3" class="score-num">0</div></div>
-    <div style="grid-column:span 2;text-align:center;"><div class="score-label">NAKAO</div><div id="sc-4" class="score-num">0</div></div>
+    <div style="grid-column:span 2;text-align:center;"><div class="score-label">WADA</div><div id="sc-3" class="score-num">0</div></div>
+    <div style="grid-column:span 2;text-align:center;"><div class="score-label">BANSHO</div><div id="sc-4" class="score-num">0</div></div>
   </div>
 
   <!-- 行3：読み上げ/リセット/＋－ -->
   <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;">
     <button class="btn odai-read-btn" id="odai-read-btn-1" onclick="playOdai(1)">▶1</button>
     <button class="btn odai-read-btn" id="odai-read-btn-2" onclick="playOdai(2)">▶2</button>
+    <button class="btn odai-read-btn" id="odai-read-btn-5" onclick="playOdai(5)">▶5</button>
     <button class="btn odai-read-btn" id="odai-read-btn-3" onclick="playOdai(3)">▶3</button>
     <button class="btn odai-read-btn" id="odai-read-btn-4" onclick="playOdai(4)">▶4</button>
-    <button class="btn odai-read-btn" id="odai-read-btn-5" onclick="playOdai(5)">▶5</button>
   </div>
   <button class="btn reset-btn" onclick="resetVotes()">投票をリセット</button>
   <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:2px;">
@@ -119,21 +119,28 @@ h1 { color: #f5c400; font-size: 14px; letter-spacing: 2px; margin-bottom: 6px; }
     <button class="btn" style="flex:1;background:#2a1a0a;border:1px solid #aa6600;color:#ffaa00;font-size:10px;" onclick="showAgenda('rule')">ルール説明</button>
     <button class="btn" style="flex:1;background:#2a1a0a;border:1px solid #aa6600;color:#ffaa00;font-size:10px;" onclick="showAgenda('qr')">会場QR</button>
     <button class="btn" style="flex:1;background:#2a1a0a;border:1px solid #aa6600;color:#ffaa00;font-size:10px;" onclick="showAgenda('chairman')">一般回答</button>
-    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:9px;" onclick="showAgenda('intro_player1')">player1</button>
-    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:9px;" onclick="showAgenda('intro_player2')">player2</button>
-    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:9px;" onclick="showAgenda('intro_player3')">player3</button>
-    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:9px;" onclick="showAgenda('intro_player4')">player4</button>
-    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:9px;" onclick="showAgenda('intro_player5')">player5</button>
-    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:9px;" onclick="showAgenda('intro_judge1')">judge1</button>
-    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:9px;" onclick="showAgenda('intro_judge2')">judge2</button>
-    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:9px;" onclick="showAgenda('intro_judge3')">judge3</button>
-    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:9px;" onclick="showAgenda('intro_judge4')">judge4</button>
-    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:9px;" onclick="showAgenda('intro_judge5')">judge5</button>
-    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:10px;" onclick="showAgenda('winner_1')">P1</button>
-    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:10px;" onclick="showAgenda('winner_2')">P2</button>
-    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:10px;" onclick="showAgenda('winner_3')">P3</button>
-    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:10px;" onclick="showAgenda('winner_4')">P4</button>
-    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:10px;" onclick="showAgenda('winner_5')">P5</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap;">
+    <div style="font-size:8px;color:#88ccff;font-weight:900;letter-spacing:1px;min-width:52px;">INTRODUCE</div>
+    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:8px;" onclick="showAgenda('intro_player1')">BANSHO</button>
+    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:8px;" onclick="showAgenda('intro_player2')">WADA</button>
+    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:8px;" onclick="showAgenda('intro_player3')">KUBO</button>
+    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:8px;" onclick="showAgenda('intro_player4')">ASANO</button>
+    <button class="btn" style="flex:1;background:#0a1a2a;border:1px solid #0066aa;color:#88ccff;font-size:8px;" onclick="showAgenda('intro_player5')">FUJIMOTO</button>
+    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:8px;" onclick="showAgenda('intro_judge1')">KIHARA</button>
+    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:8px;" onclick="showAgenda('intro_judge2')">NAKAO</button>
+    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:8px;" onclick="showAgenda('intro_judge3')">SOMEYA</button>
+    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:8px;" onclick="showAgenda('intro_judge4')">TEZUKA</button>
+    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:8px;" onclick="showAgenda('intro_judge5')">KAWACHIYA</button>
+    <button class="btn" style="flex:1;background:#0a2a1a;border:1px solid #00aa66;color:#88ffcc;font-size:8px;" onclick="showAgenda('intro_judge6')">KUROKAWA</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap;">
+    <div style="font-size:8px;color:#ff88ff;font-weight:900;letter-spacing:1px;min-width:52px;">WINNER</div>
+    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:8px;" onclick="showAgenda('winner_1')">BANSHO</button>
+    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:8px;" onclick="showAgenda('winner_2')">WADA</button>
+    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:8px;" onclick="showAgenda('winner_3')">KUBO</button>
+    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:8px;" onclick="showAgenda('winner_4')">ASANO</button>
+    <button class="btn" style="flex:1;background:#2a0a2a;border:1px solid #aa00aa;color:#ff88ff;font-size:8px;" onclick="showAgenda('winner_5')">FUJIMOTO</button>
   </div>
 </div>
 
@@ -426,21 +433,22 @@ const AGENDA_URLS = {
   rule:     'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fimage_rule_dummy.png?alt=media',
   qr:       'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fimage_qr_kansai.png?alt=media',
   chairman: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fimage_chairman%27s%20eye.png?alt=media',
-  winner_1: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_tatsuya.nakao.png?alt=media',
-  winner_2: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_kohei.bansho.png?alt=media',
+  winner_1: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_kohei.bansho.png?alt=media',
+  winner_2: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_yoshihiro.wada.png?alt=media',
   winner_3: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_chiaki.kubo.png?alt=media',
   winner_4: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_taro.asano.png?alt=media',
   winner_5: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_agenda%2Fwinner_kansai%2Fimage_winner_ryo.fujimoto.png?alt=media',
-  intro_player1: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_tatsuya.nakao.png?alt=media',
-  intro_player2: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_kohei.bansho.png?alt=media',
+  intro_player1: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_kohei.bansho.png?alt=media',
+  intro_player2: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_yoshihiro.wada.png?alt=media',
   intro_player3: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_chiaki.kubo.png?alt=media',
   intro_player4: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_taro.asano.png?alt=media',
   intro_player5: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_ryo.fujimoto.png?alt=media',
   intro_judge1: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fimage_introduce_judge1.png?alt=media',
-  intro_judge2: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_motoki.someya.png?alt=media',
+  intro_judge2: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_tatsuya.nakao.png?alt=media',
   intro_judge3: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_yuken.tezuka.png?alt=media',
   intro_judge4: '#', // TOMIYAMA 後でアップ待ち
   intro_judge5: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_kawachiya.so.png?alt=media',
+  intro_judge6: 'https://firebasestorage.googleapis.com/v0/b/song-fes-ippon-gp.firebasestorage.app/o/image_introduce%2Fkansai%2Fimage_junichiro.kurokawa.png?alt=media',
 };
 
 window.agendaAudios = agendaAudios;
@@ -504,7 +512,7 @@ if (!/iPhone|iPad|Android|Mobile/i.test(navigator.userAgent) && window.innerWidt
   <div style="flex:1;display:flex;flex-direction:column;gap:6px;overflow:hidden;">
     <div style="flex:1;background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px;overflow:hidden;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1;">
-        <span style="font-size:12px;color:#aaa;font-weight:900;min-width:90px;">NAKAO</span>
+        <span style="font-size:12px;color:#aaa;font-weight:900;min-width:90px;">BANSHO</span>
         <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
           <button onclick="window.addScore(4,-1)" style="background:#3a1a1a;border:1px solid #aa4444;color:#ff8888;font-size:16px;width:32px;height:32px;border-radius:6px;cursor:pointer;">－</button>
           <span id="sub-score-4" style="font-size:20px;font-weight:900;color:#f5c400;min-width:24px;text-align:center;">0</span>
@@ -512,7 +520,7 @@ if (!/iPhone|iPad|Android|Mobile/i.test(navigator.userAgent) && window.innerWidt
         </div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1;">
-        <span style="font-size:12px;color:#aaa;font-weight:900;min-width:90px;">BANSHO</span>
+        <span style="font-size:12px;color:#aaa;font-weight:900;min-width:90px;">WADA</span>
         <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
           <button onclick="window.addScore(3,-1)" style="background:#3a1a1a;border:1px solid #aa4444;color:#ff8888;font-size:16px;width:32px;height:32px;border-radius:6px;cursor:pointer;">－</button>
           <span id="sub-score-3" style="font-size:20px;font-weight:900;color:#f5c400;min-width:24px;text-align:center;">0</span>
