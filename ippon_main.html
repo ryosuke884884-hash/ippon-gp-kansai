@@ -162,20 +162,24 @@ let cameraPeer = null;
 let cameraConnectedRoomId = null;
 
 function connectCamera(roomId) {
-  if (cameraConnectedRoomId === roomId) return;
+  console.log('[CAMERA] connectCamera called, roomId:', roomId);
+  if (cameraConnectedRoomId === roomId) { console.log('[CAMERA] already connected to this room'); return; }
   if (cameraPeer) { try { cameraPeer.destroy(); } catch(e) {} }
   cameraConnectedRoomId = roomId;
   cameraPeer = new Peer();
   cameraPeer.on('open', myId => {
+    console.log('[CAMERA] MAIN peer opened, myId:', myId);
     const dc = cameraPeer.connect('ippon-host-' + roomId);
-    dc.on('open', () => dc.send('join:' + myId));
-    dc.on('error', () => { cameraConnectedRoomId = null; });
+    dc.on('open', () => { console.log('[CAMERA] DC opened, sending join'); dc.send('join:' + myId); });
+    dc.on('error', (e) => { console.log('[CAMERA] DC error:', e); cameraConnectedRoomId = null; });
   });
   cameraPeer.on('call', call => {
+    console.log('[CAMERA] received call from camera');
     call.answer();
-    call.on('stream', stream => { document.getElementById('camera-video').srcObject = stream; });
+    call.on('stream', stream => { console.log('[CAMERA] stream received!'); document.getElementById('camera-video').srcObject = stream; });
+    call.on('error', e => console.log('[CAMERA] call error:', e));
   });
-  cameraPeer.on('error', () => { cameraConnectedRoomId = null; });
+  cameraPeer.on('error', (e) => { console.log('[CAMERA] peer error:', e); cameraConnectedRoomId = null; });
 }
 
 function showCameraVideo(show) {
@@ -357,7 +361,9 @@ function updateUI() {
 
 onValue(ref(db, 'camera_room'), (snapshot) => {
   const roomId = snapshot.val();
+  console.log('[CAMERA] camera_room changed:', roomId);
   if (roomId) connectCamera(roomId);
+  else console.log('[CAMERA] roomId is null/empty');
 });
 
 onValue(ref(db, 'scores'), (snapshot) => {
