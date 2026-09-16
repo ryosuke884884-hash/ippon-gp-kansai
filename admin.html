@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FS Townhall 2026 — 管理者</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0d0d1a;--surface:#16162a;--card:#1e1e38;
+  --accent:#7c6ef0;--accent2:#e05c8a;--green:#4caf87;--red:#e05c5c;
+  --text:#f0eeff;--muted:#8887aa;--border:#2a2a4a;--radius:16px;
+}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px 16px 64px;}
+h1{font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+header{margin-bottom:28px;}
+header p{color:var(--muted);font-size:13px;}
+.sec-label{font-size:11px;color:var(--muted);letter-spacing:0.08em;margin-bottom:12px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+.btn{padding:13px 20px;border-radius:12px;border:none;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity 0.2s,transform 0.1s;}
+.btn:active{transform:scale(0.97);}
+.btn:disabled{opacity:0.3;cursor:not-allowed;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+.phase-status{font-size:18px;font-weight:700;margin-bottom:16px;}
+.phase-status.p1{color:var(--accent);}
+.phase-status.p2{color:var(--accent2);}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.stat{background:var(--surface);border-radius:12px;padding:14px;text-align:center;}
+.stat-n{font-size:32px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px;}
+input[type=text]{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:14px;outline:none;margin-bottom:10px;}
+input:focus{border-color:var(--accent);}
+
+/* ===== SEATING CHART ===== */
+.seating-chart{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+@media(min-width:900px){.seating-chart{grid-template-columns:repeat(3,1fr);}}
+
+.table-block{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;}
+.table-label{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:0.06em;}
+.seats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+
+.seat-cell{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:9px;padding:8px 6px;
+  min-height:52px;cursor:grab;
+  transition:border-color 0.15s,background 0.15s;
+  position:relative;
+}
+.seat-cell.occupied{border-color:rgba(124,110,240,0.4);background:rgba(124,110,240,0.08);}
+.seat-cell.empty{opacity:0.4;cursor:default;}
+.seat-cell.drag-over{border-color:var(--accent);background:rgba(124,110,240,0.15);}
+.seat-cell.dragging{opacity:0.3;}
+
+.seat-num-label{font-size:9px;color:var(--muted);margin-bottom:2px;}
+.seat-eid{font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.seat-org-label{font-size:9px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.seat-checked{position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--green);}
+
+/* Profile list */
+.profile-row{display:flex;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);gap:10px;}
+.profile-row:last-child{border-bottom:none;}
+.seat-badge{width:34px;height:34px;background:rgba(124,110,240,0.12);border:1px solid rgba(124,110,240,0.4);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--accent);font-weight:700;flex-shrink:0;}
+.p-info{flex:1;min-width:0;}
+.p-name{font-size:14px;font-weight:700;}
+.p-cp{font-size:11px;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.p-time{font-size:11px;color:var(--muted);flex-shrink:0;}
+.btn-del{padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--red);font-size:11px;cursor:pointer;flex-shrink:0;}
+.btn-del:hover{background:rgba(224,92,92,0.1);border-color:var(--red);}
+.empty{color:var(--muted);font-size:13px;padding:20px 0;text-align:center;}
+.log-box{margin-top:12px;display:none;background:var(--surface);border-radius:10px;padding:12px;max-height:200px;overflow-y:auto;font-size:12px;font-family:monospace;}
+
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:100;}
+.confirm-overlay.open{display:flex;}
+.confirm-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;max-width:320px;width:90%;text-align:center;}
+.confirm-box h3{font-size:17px;margin-bottom:10px;}
+.confirm-box p{color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.6;}
+.confirm-btns{display:flex;gap:10px;justify-content:center;}
+</style>
+</head>
+<body>
+
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h3 id="c-title">確認</h3>
+    <p id="c-msg"></p>
+    <div class="confirm-btns">
+      <button class="btn btn-outline" onclick="closeConfirm()">キャンセル</button>
+      <button class="btn btn-red" id="c-ok">実行</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <h1>FS Townhall 管理画面</h1>
+  <p>座席表・参加状況・データ管理</p>
+</header>
+
+<!-- フェーズ -->
+<div class="card">
+  <div class="sec-label">フェーズ管理</div>
+  <div class="phase-status p1" id="phase-text">現在：第一部</div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="setPhase('part1')">第一部に戻す</button>
+  </div>
+</div>
+
+<!-- 統計 -->
+<div class="card">
+  <div class="sec-label">参加状況</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="st-total">0</div><div class="stat-l">登録済み</div></div>
+    <div class="stat"><div class="stat-n" id="st-cp">0</div><div class="stat-l">CP入力済み</div></div>
+    <div class="stat"><div class="stat-n" id="st-bg">0</div><div class="stat-l">経歴入力済み</div></div>
+  </div>
+</div>
+
+<!-- 座席表 -->
+<div class="card">
+  <div class="sec-label">座席表（ドラッグで席を入れ替え）</div>
+  <div class="seating-chart" id="seating-chart"></div>
+  <button class="btn btn-primary" style="margin-top:16px;" onclick="saveSeatLayout()">座席を保存</button>
+</div>
+
+<!-- データ管理 -->
+<div class="card">
+  <div class="sec-label">データ管理</div>
+  <div class="btn-row">
+    <button class="btn btn-green" onclick="downloadCSV()">📥 CSVダウンロード</button>
+    <button class="btn btn-red" onclick="doConfirm('全データ削除','全員のプロフィールが削除されます。この操作は取り消せません。',clearAll)">🗑️ 全削除</button>
+  </div>
+</div>
+
+<!-- 参加者リスト初期登録 -->
+<div class="card">
+  <div class="sec-label">参加者リスト初期登録（Excel）</div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6;">列：EID・組織・ML・テーブル番号（1〜12）</p>
+  <label for="xlsx-input" style="display:block;padding:13px 20px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;text-align:center;margin-bottom:10px;">📂 Excelファイルを選択</label>
+  <input type="file" id="xlsx-input" accept=".xlsx" style="display:none;" onchange="handleXlsx(this)">
+  <div id="xlsx-preview" style="font-size:13px;color:var(--muted);margin-bottom:10px;"></div>
+  <button class="btn btn-primary" id="xlsx-submit-btn" style="display:none;" onclick="seedFromXlsx()">🌱 Firebaseに登録する</button>
+  <div class="log-box" id="seed-log"></div>
+</div>
+
+<!-- 登録者一覧 -->
+<div class="card">
+  <div class="sec-label">登録済みプロフィール</div>
+  <input type="text" id="admin-search" placeholder="名前・組織で検索..." oninput="filterAdmin()">
+  <div id="admin-list"><div class="empty">まだ登録がありません</div></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC-mISssQxyO67vl3JxbbBktqXoDvmGLdk",
+  authDomain: "song-fes-ippon-gp.firebaseapp.com",
+  databaseURL: "https://song-fes-ippon-gp-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "song-fes-ippon-gp",
+  storageBucket: "song-fes-ippon-gp.firebasestorage.app",
+  messagingSenderId: "727959135173",
+  appId: "1:727959135173:web:5d983f22d1164a11a6e1ac",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const TABLES = 12;
+const SEATS_PER_TABLE = 8;
+
+let allProfiles = [];
+let allSeats = [];
+let xlsxParticipants = [];
+let dragSrcKey = null;
+
+// Phase
+onValue(ref(db, 'townhall/phase'), snap => {
+  const p = snap.val() || 'part1';
+  const el = document.getElementById('phase-text');
+  el.textContent = p === 'part2' ? '現在：第二部（懇親会モード）' : '現在：第一部';
+  el.className = 'phase-status ' + (p === 'part2' ? 'p2' : 'p1');
+});
+
+// Seats
+onValue(ref(db, 'townhall/seats'), snap => {
+  allSeats = [];
+  if (snap.val()) {
+    Object.entries(snap.val()).forEach(([key, d]) => allSeats.push({ key, ...d }));
+  }
+  renderSeatingChart();
+});
+
+// Profiles
+onValue(ref(db, 'townhall/profiles'), snap => {
+  allProfiles = [];
+  if (snap.val()) {
+    Object.entries(snap.val()).forEach(([id, d]) => allProfiles.push({ id, ...d }));
+  }
+  document.getElementById('st-total').textContent = allProfiles.length;
+  document.getElementById('st-cp').textContent = allProfiles.filter(p => p.catchphrase).length;
+  document.getElementById('st-bg').textContent = allProfiles.filter(p => p.background).length;
+  renderAdminList();
+  renderSeatingChart();
+});
+
+// ===== SEATING CHART =====
+function renderSeatingChart() {
+  const chart = document.getElementById('seating-chart');
+  let html = '';
+
+  for (let t = 1; t <= TABLES; t++) {
+    const tableSeats = allSeats
+      .filter(s => parseInt(s.tableNo) === t)
+      .sort((a, b) => (a.seatNo || 99) - (b.seatNo || 99));
+
+    // 空席で8席分埋める
+    const cells = [];
+    for (let i = 0; i < SEATS_PER_TABLE; i++) {
+      cells.push(tableSeats[i] || null);
+    }
+
+    html += `<div class="table-block">
+      <div class="table-label">TABLE ${t}</div>
+      <div class="seats-grid">
+        ${cells.map((s, i) => {
+          if (!s) return `<div class="seat-cell empty"><div class="seat-num-label">${i+1}</div></div>`;
+          const p = s.profileId ? allProfiles.find(x => x.id === s.profileId) : null;
+          const isChecked = !!p;
+          return `<div class="seat-cell ${isChecked ? 'occupied' : ''}"
+            draggable="true"
+            data-key="${s.key}"
+            data-table="${t}"
+            data-seat="${i+1}"
+            ondragstart="onDragStart(event)"
+            ondragover="onDragOver(event)"
+            ondrop="onDrop(event)"
+            ondragend="onDragEnd(event)">
+            ${isChecked ? '<div class="seat-checked"></div>' : ''}
+            <div class="seat-num-label">${i+1}</div>
+            <div class="seat-eid">${s.name || s.eid || ''}</div>
+            <div class="seat-org-label">${s.org || ''}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+  chart.innerHTML = html;
+}
+
+// ===== DRAG & DROP =====
+window.onDragStart = e => {
+  dragSrcKey = e.currentTarget.dataset.key;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+};
+
+window.onDragOver = e => {
+  e.preventDefault();
+  document.querySelectorAll('.seat-cell').forEach(el => el.classList.remove('drag-over'));
+  e.currentTarget.classList.add('drag-over');
+};
+
+window.onDragEnd = () => {
+  document.querySelectorAll('.seat-cell').forEach(el => el.classList.remove('dragging','drag-over'));
+};
+
+window.onDrop = async e => {
+  e.preventDefault();
+  const toKey = e.currentTarget.dataset.key;
+  const toTable = parseInt(e.currentTarget.dataset.table);
+  const toSeat = parseInt(e.currentTarget.dataset.seat);
+  if (!dragSrcKey || dragSrcKey === toKey) return;
+
+  const fromSeat = allSeats.find(s => s.key === dragSrcKey);
+  const toSeatData = allSeats.find(s => s.key === toKey);
+  if (!fromSeat) return;
+
+  // 入れ替え
+  const fromTable = fromSeat.tableNo;
+  const fromSeatNo = fromSeat.seatNo;
+
+  await set(ref(db, `townhall/seats/${dragSrcKey}/tableNo`), toTable);
+  await set(ref(db, `townhall/seats/${dragSrcKey}/seatNo`), toSeat);
+  if (toSeatData) {
+    await set(ref(db, `townhall/seats/${toKey}/tableNo`), fromTable);
+    await set(ref(db, `townhall/seats/${toKey}/seatNo`), fromSeatNo);
+  }
+  dragSrcKey = null;
+};
+
+window.saveSeatLayout = async () => {
+  // 現在の表示順をFirebaseに保存（seatNoを更新）
+  const items = document.querySelectorAll('.seat-cell[data-key]');
+  for (const el of items) {
+    const key = el.dataset.key;
+    const table = el.dataset.table;
+    const seat = el.dataset.seat;
+    if (key) {
+      await set(ref(db, `townhall/seats/${key}/tableNo`), parseInt(table));
+      await set(ref(db, `townhall/seats/${key}/seatNo`), parseInt(seat));
+    }
+  }
+  alert('座席を保存しました！');
+};
+
+// ===== Admin List =====
+function renderAdminList(list) {
+  const arr = list || allProfiles;
+  const el = document.getElementById('admin-list');
+  if (!arr.length) { el.innerHTML = '<div class="empty">まだ登録がありません</div>'; return; }
+  el.innerHTML = arr.map(p => {
+    const t = p.timestamp ? new Date(p.timestamp).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}) : '';
+    return `<div class="profile-row">
+      <div class="seat-badge">${p.org||'?'}</div>
+      <div class="p-info">
+        <div class="p-name">${p.name||p.eid||'名前なし'} <span style="font-size:11px;color:var(--muted)">${p.org||''}</span></div>
+        <div class="p-cp">「${p.catchphrase||'未入力'}」</div>
+      </div>
+      <div class="p-time">${t}</div>
+      <button class="btn-del" onclick="delProfile('${p.id}','${(p.name||'').replace(/'/g,'')}')">削除</button>
+    </div>`;
+  }).join('');
+}
+
+window.filterAdmin = () => {
+  const q = document.getElementById('admin-search').value.toLowerCase();
+  renderAdminList(allProfiles.filter(p =>
+    (p.name||'').toLowerCase().includes(q) || (p.org||'').toLowerCase().includes(q)
+  ));
+};
+
+// ===== Phase =====
+window.setPhase = async p => { await set(ref(db, 'townhall/phase'), p); closeConfirm(); };
+
+// ===== Delete =====
+window.delProfile = (id, name) => doConfirm(`「${name}」を削除`, 'このプロフィールを削除します。', async () => { await remove(ref(db, `townhall/profiles/${id}`)); closeConfirm(); });
+window.clearAll = async () => { await remove(ref(db, 'townhall/profiles')); closeConfirm(); };
+
+// ===== CSV =====
+window.downloadCSV = () => {
+  if (!allProfiles.length) { alert('データがありません'); return; }
+  const h = ['EID','組織','名前','キャッチコピー','経歴','専門分野','テーブル','席','登録時刻'];
+  const rows = allProfiles.map(p => {
+    const s = allSeats.find(x => x.profileId === p.id);
+    return [
+      p.eid||'', p.org||'', p.name||'', p.catchphrase||'',
+      (p.background||'').replace(/\n/g,' '),
+      (p.specialty||'').replace(/\n/g,' '),
+      s ? s.tableNo : '', s ? s.seatNo : '',
+      p.timestamp ? new Date(p.timestamp).toLocaleString('ja-JP') : ''
+    ];
+  });
+  const csv = [h,...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `fs_townhall_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+};
+
+// ===== XLSX =====
+window.handleXlsx = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const data = new Uint8Array(e.target.result);
+    const wb = XLSX.read(data, { type: 'array' });
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+    xlsxParticipants = rows.map(r => ({
+      eid: (r['EID'] || r['eid'] || '').toString().trim(),
+      org: (r['組織'] || r['org'] || '').toString().trim(),
+      ml:  (r['ML']  || r['ml']  || '').toString().trim(),
+      tableNo: parseInt(r['テーブル番号'] || r['テーブル'] || r['table'] || 0) || 0,
+    })).filter(p => p.eid);
+
+    // テーブルごとに席番号を自動付与
+    const tableCount = {};
+    xlsxParticipants.forEach(p => {
+      if (!tableCount[p.tableNo]) tableCount[p.tableNo] = 0;
+      tableCount[p.tableNo]++;
+      p.seatNo = tableCount[p.tableNo];
+    });
+
+    document.getElementById('xlsx-preview').textContent = `${xlsxParticipants.length}名を読み込みました。`;
+    document.getElementById('xlsx-submit-btn').style.display = 'block';
+  };
+  reader.readAsArrayBuffer(file);
+};
+
+window.seedFromXlsx = async () => {
+  if (!xlsxParticipants.length) { alert('先にExcelを選択してください'); return; }
+  const logEl = document.getElementById('seed-log');
+  logEl.style.display = 'block'; logEl.innerHTML = '';
+  const addLog = (msg, color) => { logEl.innerHTML += `<div style="color:${color||'var(--text)'}">${msg}</div>`; logEl.scrollTop = logEl.scrollHeight; };
+  addLog('登録開始...');
+  let ok = 0;
+  for (const p of xlsxParticipants) {
+    const safeKey = p.eid.replace(/\./g, '_');
+    try {
+      const snap = await get(ref(db, `townhall/seats/${safeKey}`));
+      const existing = snap.exists() ? snap.val() : {};
+      await set(ref(db, `townhall/seats/${safeKey}`), {
+        eid: p.eid, name: p.eid, org: p.org, ml: p.ml,
+        tableNo: p.tableNo, seatNo: p.seatNo,
+        registered: existing.registered || false,
+        profileId: existing.profileId || null
+      });
+      addLog(`✓ T${p.tableNo}-${p.seatNo} ${p.eid} (${p.org})`, '#4caf87');
+      ok++;
+    } catch(e) { addLog(`✗ ${p.eid}: ${e.message}`, '#e05c5c'); }
+  }
+  addLog(`完了！ ${ok}件処理しました。`, '#4caf87');
+};
+
+// ===== Confirm =====
+let confirmCb = null;
+window.doConfirm = (title, msg, cb) => {
+  document.getElementById('c-title').textContent = title;
+  document.getElementById('c-msg').textContent = msg;
+  confirmCb = cb;
+  document.getElementById('confirm-overlay').classList.add('open');
+  document.getElementById('c-ok').onclick = () => { if(confirmCb) confirmCb(); };
+};
+window.closeConfirm = () => { document.getElementById('confirm-overlay').classList.remove('open'); confirmCb = null; };
+</script>
+</body>
+</html>
